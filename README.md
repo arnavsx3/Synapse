@@ -1,36 +1,163 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 Synapse
 
-## Getting Started
+> AI-powered knowledge workspace — combining note-taking, semantic search, and real-time AI assistance.
 
-First, run the development server:
+Synapse is a full-stack, production-style SaaS application inspired by tools like Notion and ChatGPT. It allows users to create, organize, and interact with their knowledge using AI.
+
+---
+
+## 🚀 Features
+
+* ✍️ Rich note-taking & knowledge management
+* 🤖 AI-powered chat & document assistance (Groq API)
+* 🔍 Semantic search using vector embeddings (pgvector)
+* ⚡ Real-time updates with WebSockets
+* 🧠 Context-aware AI responses from user data
+* 📦 Background processing with job queues
+* 🚀 Optimized performance using caching
+
+---
+
+## 🧱 Tech Stack
+
+### 🖥️ Frontend
+
+* Next.js (App Router)
+* TypeScript
+* Tailwind CSS
+* Zustand (state management)
+
+### ⚙️ Backend
+
+* Next.js API Routes (or Node.js service)
+* tRPC (optional)
+* Zod (schema validation)
+
+### 🤖 AI Layer
+
+* Groq API (LLM inference + streaming)
+
+### 🗄️ Database
+
+* PostgreSQL (Neon)
+* pgvector (vector similarity search)
+
+### ⚡ Caching & Queue
+
+* Redis (Upstash)
+* BullMQ (background jobs & workers)
+
+### 🔌 Real-Time
+
+* WebSockets / Socket.IO
+
+### 🔐 Authentication
+
+* NextAuth / Clerk
+
+### 🐳 DevOps
+
+* Docker
+* Docker Compose
+
+---
+
+## 🧠 Architecture Overview
+
+Client (Next.js)
+↓
+API Layer
+↓
+Service Layer
+├── AI Service (Groq)
+├── Database Service (PostgreSQL)
+├── Cache Layer (Redis)
+├── Queue System (BullMQ)
+↓
+Infrastructure (Neon + Redis)
+
+---
+
+## 🔁 Core Workflows
+
+### 📝 Note Processing
+
+1. User creates a note
+2. Stored in PostgreSQL
+3. Background job generates embeddings
+4. Stored using pgvector
+
+---
+
+### 🤖 AI Query Flow
+
+1. User asks a question
+2. Relevant notes retrieved via vector search
+3. Context sent to Groq API
+4. Response streamed back in real-time
+
+---
+
+## 🛠️ Setup (Local Development)
 
 ```bash
+# clone repo
+git clone https://github.com/your-username/synapse.git
+
+cd synapse
+
+# install deps
+npm install
+
+# run dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚙️ Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env` file:
 
-## Learn More
+```env
+DATABASE_URL=
+REDIS_URL=
+GROQ_API_KEY=
+NEXTAUTH_SECRET=
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🐳 Docker (optional)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+docker-compose up --build
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📈 Future Improvements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* Multi-tenant workspaces
+* Role-based access control
+* Collaborative editing
+* AI agents & automation
+* Advanced caching strategies
+
+---
+
+## 🤝 Contributing
+
+This is a personal portfolio project, but suggestions and feedback are welcome.
+
+---
+
+## 📜 License
+
+MIT License
+
+---
+
+## ⭐ Acknowledgements
+
+Inspired by modern AI-native tools like Notion, ChatGPT, and knowledge graphs.
