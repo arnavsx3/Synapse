@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createNote, getNotesByUser, updateNote, deleteNote } from "@/lib/db/queries/notes";
-import { createNoteSchema, updateNoteSchema, deleteNoteSchema } from "@/lib/validators/notes";
+import {
+  createNote,
+  getNotesByUser,
+  updateNote,
+  deleteNote,
+} from "@/lib/db/queries/notes";
+import {
+  createNoteSchema,
+  updateNoteSchema,
+  deleteNoteSchema,
+} from "@/lib/validators/notes";
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,6 +63,7 @@ export async function PATCH(req: NextRequest) {
     }
     const { id, ...data } = result.data;
     const updated = await updateNote(id, data);
+    return NextResponse.json({ note: updated });
   } catch (error: any) {
     return NextResponse.json(
       { message: "Internal Server Error" },
@@ -82,4 +92,3 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
-
