@@ -7,14 +7,16 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 
-export const users = pgTable("users", {
+export const users = pgTable("user", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name"),
+  emailVerified: timestamp("email_verified"),
+  image: text("image"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const notes = pgTable("notes", {
+export const notes = pgTable("note", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
   content: text("content"),
@@ -26,7 +28,7 @@ export const notes = pgTable("notes", {
 });
 
 export const accounts = pgTable(
-  "accounts",
+  "account",
   {
     userId: uuid("user_id")
       .notNull()
@@ -48,7 +50,7 @@ export const accounts = pgTable(
   }),
 );
 
-export const sessions = pgTable("sessions", {
+export const sessions = pgTable("session", {
   sessionToken: text("session_token").primaryKey(),
   userId: uuid("user_id")
     .notNull()
@@ -57,7 +59,7 @@ export const sessions = pgTable("sessions", {
 });
 
 export const verificationTokens = pgTable(
-  "verification_tokens",
+  "verification_token",
   {
     identifier: text("identifier").notNull(),
     token: text("token").notNull(),
