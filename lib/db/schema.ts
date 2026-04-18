@@ -10,6 +10,7 @@ import {
 export const users = pgTable("user", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
+  password: text("password"),
   name: text("name"),
   emailVerified: timestamp("emailVerified"),
   image: text("image"),
