@@ -2,21 +2,41 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
+import axios from "axios";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    await signIn("credentials", {
-      email,
-      password,
-      callbackUrl: "/dashboard",
-    });
-  };
+    setLoading(true);
+    setError("");
 
+    try {
+      await api.post("/signin", {
+        email,
+        password,
+      });
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Unable to sign in");
+        return;
+      }
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-(--bg-start) via-(--bg-mid) to-(--bg-end) text-(--text-main) px-4">
       <div className="w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl p-8">
@@ -46,8 +66,13 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button className="w-full p-3 rounded-lg bg-[#6366F1] hover:bg-indigo-500 transition font-medium">
-            Sign in
+          {error && <p className="text-sm text-red-400">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full p-3 rounded-lg bg-[#6366F1] hover:bg-indigo-500 transition font-medium disabled:opacity-60">
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
@@ -60,11 +85,10 @@ export default function LoginPage() {
 
         {/* Google */}
         <button
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
           className="w-full p-3 rounded-lg bg-white text-black font-medium hover:bg-gray-200 transition">
           Continue with Google
         </button>
-
         {/* Footer */}
         <p className="text-sm text-center text-[#94A3B8] mt-6">
           Don’t have an account?{" "}

@@ -1,5 +1,5 @@
 import { db } from "../client";
-import { and, InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { and, InferInsertModel } from "drizzle-orm";
 import { notes } from "../schema";
 import { eq } from "drizzle-orm";
 

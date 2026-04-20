@@ -36,7 +36,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ note });
-  } catch (error: any) {
+  } catch (error) {
+    console.error("Create note error:", error);
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -53,7 +55,9 @@ export async function GET(req: NextRequest) {
 
     const notes = await getNotesByUser(session.user.id);
     return NextResponse.json({ notes });
-  } catch (error: any) {
+  } catch (error) {
+    console.error("Get note error:", error);
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },
@@ -81,7 +85,9 @@ export async function PATCH(req: NextRequest) {
     const { id, ...data } = result.data;
     const updated = await updateNote(id, data, session.user.id);
     return NextResponse.json({ note: updated });
-  } catch (error: any) {
+  } catch (error) {
+    console.error("Update note error:", error);
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },
@@ -107,7 +113,9 @@ export async function DELETE(req: NextRequest) {
     }
     const deleted = await deleteNote(result.data.id, session.user.id);
     return NextResponse.json({ note: deleted });
-  } catch (error: any) {
+  } catch (error) {
+    console.error("Delete note error:", error);
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },

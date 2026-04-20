@@ -30,9 +30,11 @@ export async function POST(req: NextRequest) {
       password: hashedPassword,
     });
     return NextResponse.json({ message: "User created" }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
+    console.error("Signup error:", error);
+
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal Server Error" },
       { status: 500 },
     );
   }

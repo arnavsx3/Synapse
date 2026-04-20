@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signup } from "@/lib/api/auth";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -21,8 +22,13 @@ export default function SignupPage() {
     try {
       await signup({ email, password });
       router.push("/signin");
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err.message);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Unable to create account");
+        return;
+      }
+
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
