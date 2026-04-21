@@ -6,11 +6,11 @@ export const createProjectSchema = z.object({
 });
 
 export const updateProjectSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string().min(1).optional(),
   description: z.string().optional(),
 });
 
 export const deleteProjectSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });

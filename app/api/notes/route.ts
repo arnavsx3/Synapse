@@ -13,6 +13,13 @@ import {
   deleteNoteSchema,
 } from "@/lib/validators/notes";
 
+import { z } from "zod";
+import { getProjectByUser } from "@/lib/db/queries/projects";
+
+const noteProjectFilterSchema = z
+  .union([z.literal("inbox"), z.uuid()])
+  .nullable();
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -28,6 +35,20 @@ export async function POST(req: NextRequest) {
         { error: result.error.message },
         { status: 400 },
       );
+    }
+
+    if (result.data.projectId) {
+      const project = await getProjectByUser(
+        result.data.projectId,
+        session.user.id,
+      );
+
+      if (!project) {
+        return NextResponse.json(
+          { message: "Project not found" },
+          { status: 404 },
+        );
+      }
     }
 
     const note = await createNote({
@@ -53,8 +74,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const projectId = req.nextUrl.searchParams.get("projectId");
-    const notes = await getNotesByUser(session.user.id,projectId);
+    const projectIdResult = noteProjectFilterSchema.safeParse(
+      req.nextUrl.searchParams.get("projectId"),
+    );
+
+    if (!projectIdResult.success) {
+      return NextResponse.json(
+        { message: "Invalid project filter" },
+        { status: 400 },
+      );
+    }
+
+    const notes = await getNotesByUser(session.user.id, projectIdResult.data);
     return NextResponse.json({ notes });
   } catch (error) {
     console.error("Get note error:", error);
@@ -84,6 +115,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     const { id, ...data } = result.data;
+    if (data.projectId) {
+      const project = await getProjectByUser(data.projectId, session.user.id);
+
+      if (!project) {
+        return NextResponse.json(
+          { message: "Project not found" },
+          { status: 404 },
+        );
+      }
+    }
     const updated = await updateNote(id, data, session.user.id);
     return NextResponse.json({ note: updated });
   } catch (error) {
