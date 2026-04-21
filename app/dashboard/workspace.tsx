@@ -182,6 +182,52 @@ export function Workspace() {
     }
   };
 
+  const handleMoveNote = async (projectId: string | null) => {
+    if (!selectedNote) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const note = await updateNote({
+        id: selectedNote.id,
+        projectId,
+      });
+
+      setNotes((currentNotes) => {
+        const nextNotes = currentNotes.map((currentNote) =>
+          currentNote.id === note.id ? note : currentNote,
+        );
+
+        const currentFilter = getNotesFilterFromScope(scope);
+
+        if (currentFilter === null) {
+          return nextNotes;
+        }
+
+        if (currentFilter === "inbox") {
+          return nextNotes.filter(
+            (currentNote) => currentNote.projectId === null,
+          );
+        }
+
+        return nextNotes.filter(
+          (currentNote) => currentNote.projectId === currentFilter,
+        );
+      });
+
+      if (scope !== "all") {
+        setSelectedNoteId(null);
+      }
+    } catch {
+      setError("Unable to move note.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDeleteNote = async () => {
     if (!selectedNote) {
       return;
@@ -465,6 +511,29 @@ export function Workspace() {
               onChange={(event) => setNoteContent(event.target.value)}
               className="min-h-[44vh] w-full flex-1 resize-none rounded-md border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 outline-none transition focus:border-(--primary)"
             />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-[#94A3B8]">Move to</span>
+
+              <button
+                type="button"
+                onClick={() => handleMoveNote(null)}
+                disabled={saving}
+                className="rounded-md border border-white/10 px-3 py-2 text-xs text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
+                Inbox
+              </button>
+
+              {projects.map((project) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  onClick={() => handleMoveNote(project.id)}
+                  disabled={saving}
+                  className="rounded-md border border-white/10 px-3 py-2 text-xs text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
+                  {project.name}
+                </button>
+              ))}
+            </div>
 
             <div className="flex justify-end gap-2">
               <button
