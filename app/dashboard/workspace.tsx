@@ -16,7 +16,8 @@ import {
   type Note,
 } from "@/lib/api/notes";
 
-type Scope = "all" | "inbox" | `project:${string}`;
+import { useWorkspaceStore } from "@/lib/store/workspace-store";
+import type { Scope } from "@/lib/store/workspace-store";
 
 const getProjectIdFromScope = (scope: Scope) => {
   if (!scope.startsWith("project:")) {
@@ -39,18 +40,26 @@ const getNotesFilterFromScope = (scope: Scope) => {
 };
 
 export function Workspace() {
-  const [scope, setScope] = useState<Scope>("all");
   const [projects, setProjects] = useState<Project[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
-  const [editingProjectName, setEditingProjectName] = useState("");
+
+  const {
+    scope,
+    selectedNoteId,
+    editingProjectId,
+    editingProjectName,
+    setScope,
+    setSelectedNoteId,
+    setEditingProjectId,
+    setEditingProjectName,
+    resetProjectEditing,
+  } = useWorkspaceStore();
 
   const selectedNote =
     notes.find((note) => note.id === selectedNoteId) ?? notes[0] ?? null;
@@ -97,7 +106,7 @@ export function Workspace() {
     };
 
     loadNotes();
-  }, [scope]);
+  }, [scope, setSelectedNoteId]);
 
   useEffect(() => {
     setNoteTitle(selectedNote?.title ?? "");
@@ -276,8 +285,7 @@ export function Workspace() {
         ),
       );
 
-      setEditingProjectId(null);
-      setEditingProjectName("");
+      resetProjectEditing();
     } catch {
       setError("Unable to rename project.");
     } finally {
@@ -377,8 +385,7 @@ export function Workspace() {
                       <button
                         type="button"
                         onClick={() => {
-                          setEditingProjectId(null);
-                          setEditingProjectName("");
+                          resetProjectEditing();
                         }}
                         disabled={saving}
                         className="flex-1 rounded-md border border-white/10 px-2 py-1.5 text-xs font-medium text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
