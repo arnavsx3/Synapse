@@ -55,6 +55,66 @@ export function Workspace() {
   } = useWorkspaceStore();
 
   const queryClient = useQueryClient();
+
+  const createProjectMutation = useMutation({
+    mutationFn: createProject,
+    onMutate: () => {
+      setError("");
+      setSaving(true);
+    },
+    onSuccess: async (project) => {
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setProjectName("");
+      setScope(`project:${project.id}`);
+    },
+    onError: () => {
+      setError("Unable to create project.");
+    },
+    onSettled: () => {
+      setSaving(false);
+    },
+  });
+
+  const renameProjectMutation = useMutation({
+    mutationFn: updateProject,
+    onMutate: () => {
+      setError("");
+      setSaving(true);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      resetProjectEditing();
+    },
+    onError: () => {
+      setError("Unable to rename project.");
+    },
+    onSettled: () => {
+      setSaving(false);
+    },
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: deleteProject,
+    onMutate: () => {
+      setError("");
+      setSaving(true);
+    },
+    onSuccess: async (_data, projectId) => {
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await queryClient.invalidateQueries({ queryKey: ["notes"] });
+
+      if (scope === `project:${projectId}`) {
+        setScope("inbox");
+      }
+    },
+    onError: () => {
+      setError("Unable to delete project.");
+    },
+    onSettled: () => {
+      setSaving(false);
+    },
+  });
+
   const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ["projects"],
     queryFn: getProjects,
@@ -99,21 +159,7 @@ export function Workspace() {
     if (!name) {
       return;
     }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      const project = await createProject({ name });
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
-
-      setProjectName("");
-      setScope(`project:${project.id}`);
-    } catch {
-      setError("Unable to create project.");
-    } finally {
-      setSaving(false);
-    }
+    createProjectMutation.mutate({ name });
   };
 
   const handleCreateNote = async () => {
@@ -154,7 +200,7 @@ export function Workspace() {
     setError("");
 
     try {
-      const note = await updateNote({
+      await updateNote({
         id: selectedNote.id,
         title,
         content,
@@ -229,21 +275,7 @@ export function Workspace() {
       setError("Project name cannot be empty.");
       return;
     }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      await updateProject({ id: projectId, name });
-
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
-
-      resetProjectEditing();
-    } catch {
-      setError("Unable to rename project.");
-    } finally {
-      setSaving(false);
-    }
+    renameProjectMutation.mutate({ id: projectId, name });
   };
 
   const handleDeleteProject = async (projectId: string) => {
@@ -255,23 +287,7 @@ export function Workspace() {
       return;
     }
 
-    setSaving(true);
-    setError("");
-
-    try {
-      await deleteProject(projectId);
-
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
-      await queryClient.invalidateQueries({ queryKey: ["notes"] });
-
-      if (scope === `project:${projectId}`) {
-        setScope("inbox");
-      }
-    } catch {
-      setError("Unable to delete project.");
-    } finally {
-      setSaving(false);
-    }
+    deleteProjectMutation.mutate(projectId);
   };
 
   return (
