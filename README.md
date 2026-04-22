@@ -26,6 +26,7 @@ Synapse is a full-stack, production-style SaaS application inspired by tools lik
 * TypeScript
 * Tailwind CSS
 * Zustand (state management)
+* Tanstack (React query)
 
 ### ⚙️ Backend
 
