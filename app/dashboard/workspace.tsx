@@ -30,12 +30,8 @@ const getProjectIdFromScope = (scope: Scope) => {
 };
 
 const getNotesFilterFromScope = (scope: Scope) => {
-  if (scope === "all") {
+  if (scope === "all" || scope === "inbox") {
     return null;
-  }
-
-  if (scope === "inbox") {
-    return "inbox";
   }
 
   return getProjectIdFromScope(scope);
@@ -200,6 +196,9 @@ export function Workspace() {
     queryFn: () => getNotes(notesFilter),
   });
 
+  const visibleNotes =
+    scope === "inbox" ? notes.filter((n) => n.projectId === null) : notes;
+
   const [projectName, setProjectName] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
@@ -207,7 +206,9 @@ export function Workspace() {
   const [error, setError] = useState("");
 
   const selectedNote =
-    notes.find((note) => note.id === selectedNoteId) ?? notes[0] ?? null;
+    visibleNotes.find((note) => note.id === selectedNoteId) ??
+    visibleNotes[0] ??
+    null;
 
   const selectedProjectId = getProjectIdFromScope(scope);
   const selectedProject = selectedProjectId
@@ -224,7 +225,7 @@ export function Workspace() {
   useEffect(() => {
     setNoteTitle(selectedNote?.title ?? "");
     setNoteContent(selectedNote?.content ?? "");
-  }, [selectedNote]);
+  }, [selectedNote?.id]);
 
   const handleCreateProject = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -454,7 +455,7 @@ export function Workspace() {
             <h2 className="text-lg font-semibold tracking-tight">
               {scopeTitle}
             </h2>
-            <p className="text-xs text-[#94A3B8]">{notes.length} notes</p>
+            <p className="text-xs text-[#94A3B8]">{visibleNotes.length} notes</p>
           </div>
 
           <button
@@ -469,12 +470,12 @@ export function Workspace() {
         <div className="max-h-[64vh] space-y-2 overflow-y-auto p-3">
           {loading ? (
             <p className="p-3 text-sm text-[#94A3B8]">Loading notes...</p>
-          ) : notes.length === 0 ? (
+          ) : visibleNotes.length === 0 ? (
             <p className="p-3 text-sm text-[#94A3B8]">
               No notes here yet. Create one to start this space.
             </p>
           ) : (
-            notes.map((note) => (
+            visibleNotes.map((note) => (
               <button
                 key={note.id}
                 type="button"
