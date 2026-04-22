@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   createProject,
   getProjects,
@@ -36,6 +36,83 @@ const getNotesFilterFromScope = (scope: Scope) => {
 
   return getProjectIdFromScope(scope);
 };
+
+type NoteEditorProps = {
+  note: Note;
+  projects: Project[];
+  saving: boolean;
+  onSave: (title: string, content: string) => void;
+  onMove: (projectId: string | null) => void;
+  onDelete: () => void;
+};
+
+function NoteEditor({
+  note,
+  projects,
+  saving,
+  onSave,
+  onMove,
+  onDelete,
+}: NoteEditorProps) {
+  const [noteTitle, setNoteTitle] = useState(note.title ?? "");
+  const [noteContent, setNoteContent] = useState(note.content ?? "");
+
+  return (
+    <div className="flex min-h-[60vh] flex-col gap-4">
+      <input
+        value={noteTitle}
+        onChange={(event) => setNoteTitle(event.target.value)}
+        className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-3 text-xl font-semibold outline-none transition focus:border-(--primary)"
+      />
+
+      <textarea
+        value={noteContent}
+        onChange={(event) => setNoteContent(event.target.value)}
+        className="min-h-[44vh] w-full flex-1 resize-none rounded-md border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 outline-none transition focus:border-(--primary)"
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-[#94A3B8]">Move to</span>
+
+        <button
+          type="button"
+          onClick={() => onMove(null)}
+          disabled={saving}
+          className="rounded-md border border-white/10 px-3 py-2 text-xs text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
+          Inbox
+        </button>
+
+        {projects.map((project) => (
+          <button
+            key={project.id}
+            type="button"
+            onClick={() => onMove(project.id)}
+            disabled={saving}
+            className="rounded-md border border-white/10 px-3 py-2 text-xs text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
+            {project.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={saving}
+          className="rounded-md border border-red-400/30 px-3 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/10 disabled:opacity-60">
+          Delete
+        </button>
+        <button
+          type="button"
+          onClick={() => onSave(noteTitle, noteContent)}
+          disabled={saving}
+          className="rounded-md bg-(--primary) px-4 py-2 text-sm font-medium transition hover:bg-indigo-500 disabled:opacity-60">
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function Workspace() {
   const {
@@ -200,8 +277,6 @@ export function Workspace() {
     scope === "inbox" ? notes.filter((n) => n.projectId === null) : notes;
 
   const [projectName, setProjectName] = useState("");
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteContent, setNoteContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -221,11 +296,6 @@ export function Workspace() {
       : scope === "inbox"
         ? "Inbox"
         : (selectedProject?.name ?? "Project");
-
-  useEffect(() => {
-    setNoteTitle(selectedNote?.title ?? "");
-    setNoteContent(selectedNote?.content ?? "");
-  }, [selectedNote?.id]);
 
   const handleCreateProject = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -271,14 +341,13 @@ export function Workspace() {
     });
   };
 
-  const handleSaveNote = async (event: React.SyntheticEvent) => {
-    event.preventDefault();
+  const handleSaveNote = async (titleValue: string, contentValue: string) => {
     if (!selectedNote) {
       return;
     }
 
-    const title = noteTitle.trim();
-    const content = noteContent.trim();
+    const title = titleValue.trim();
+    const content = contentValue.trim();
 
     if (!title || !content) {
       setError("A note needs both a title and content.");
@@ -291,6 +360,7 @@ export function Workspace() {
       content,
     });
   };
+
 
   const handleMoveNote = async (projectId: string | null) => {
     if (!selectedNote) {
@@ -455,7 +525,9 @@ export function Workspace() {
             <h2 className="text-lg font-semibold tracking-tight">
               {scopeTitle}
             </h2>
-            <p className="text-xs text-[#94A3B8]">{visibleNotes.length} notes</p>
+            <p className="text-xs text-[#94A3B8]">
+              {visibleNotes.length} notes
+            </p>
           </div>
 
           <button
@@ -503,59 +575,15 @@ export function Workspace() {
         )}
 
         {selectedNote ? (
-          <div className="flex min-h-[60vh] flex-col gap-4">
-            <input
-              value={noteTitle}
-              onChange={(event) => setNoteTitle(event.target.value)}
-              className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-3 text-xl font-semibold outline-none transition focus:border-(--primary)"
-            />
-
-            <textarea
-              value={noteContent}
-              onChange={(event) => setNoteContent(event.target.value)}
-              className="min-h-[44vh] w-full flex-1 resize-none rounded-md border border-white/10 bg-black/30 px-3 py-3 text-sm leading-6 outline-none transition focus:border-(--primary)"
-            />
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-[#94A3B8]">Move to</span>
-
-              <button
-                type="button"
-                onClick={() => handleMoveNote(null)}
-                disabled={saving}
-                className="rounded-md border border-white/10 px-3 py-2 text-xs text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
-                Inbox
-              </button>
-
-              {projects.map((project) => (
-                <button
-                  key={project.id}
-                  type="button"
-                  onClick={() => handleMoveNote(project.id)}
-                  disabled={saving}
-                  className="rounded-md border border-white/10 px-3 py-2 text-xs text-[#94A3B8] transition hover:bg-white/10 hover:text-white disabled:opacity-60">
-                  {project.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleDeleteNote}
-                disabled={saving}
-                className="rounded-md border border-red-400/30 px-3 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/10 disabled:opacity-60">
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveNote}
-                disabled={saving}
-                className="rounded-md bg-(--primary) px-4 py-2 text-sm font-medium transition hover:bg-indigo-500 disabled:opacity-60">
-                Save
-              </button>
-            </div>
-          </div>
+          <NoteEditor
+            key={selectedNote.id}
+            note={selectedNote}
+            projects={projects}
+            saving={saving}
+            onSave={handleSaveNote}
+            onMove={handleMoveNote}
+            onDelete={handleDeleteNote}
+          />
         ) : (
           <div className="flex min-h-[60vh] items-center justify-center text-center">
             <div>
