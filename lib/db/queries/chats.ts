@@ -41,3 +41,36 @@ export const getChatMessagesByUser = async (chatId: string, userId: string) => {
     .orderBy(asc(chatMessages.createdAt));
 };
 
+export const addChatMessage = async (data: CreateChatMessage) => {
+  const [message] = await db.insert(chatMessages).values(data).returning();
+  return message;
+};
+
+export const updateChatTitle = async (
+  id: string,
+  title: string,
+  userId: string,
+) => {
+  const [chat] = await db
+    .update(chats)
+    .set({
+      title,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(chats.id, id), eq(chats.userId, userId)))
+    .returning();
+
+  return chat;
+};
+
+export const touchChat = async (id: string, userId: string) => {
+  const [chat] = await db
+    .update(chats)
+    .set({
+      updatedAt: new Date(),
+    })
+    .where(and(eq(chats.id, id), eq(chats.userId, userId)))
+    .returning();
+
+  return chat;
+};
