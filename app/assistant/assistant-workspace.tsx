@@ -63,7 +63,7 @@ export function AssistantWorkspace() {
     mutationFn: ({ chatId, message }: { chatId: string; message: string }) =>
       sendChatMessage(chatId, { message }),
     onMutate: () => {
-      clearError;
+      clearError();
     },
     onSuccess: async (_data, variables) => {
       clearDraft();
