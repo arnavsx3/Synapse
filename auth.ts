@@ -14,6 +14,10 @@ export const { handlers, auth } = NextAuth({
     }),
   ],
 
+  pages: {
+    signIn: "/login",
+  },
+
   session: {
     strategy: "database",
     maxAge: 30 * 24 * 60 * 60,

@@ -1,14 +1,10 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AssistantWorkspace } from "./assistant-workspace";
 
 export default async function AssistantPage() {
   const session = await auth();
 
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
   return (
     <div className="min-h-screen bg-linear-to-br from-(--bg-start) via-(--bg-mid) to-(--bg-end) text-(--text-main)">
       <header className="border-b border-white/10 bg-black/20 backdrop-blur-xl">
@@ -22,7 +18,7 @@ export default async function AssistantPage() {
 
           <div className="flex items-center gap-4">
             <p className="hidden text-sm text-[#94A3B8] sm:block">
-              {session.user.email}
+              {session?.user?.email ?? ""}
             </p>
 
             <Link

@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import { LogoutButton } from "./logout-button";
 
 export default async function DashboardLayout({
@@ -8,10 +7,6 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-(--bg-start) via-(--bg-mid) to-(--bg-end) text-(--text-main)">
@@ -26,7 +21,7 @@ export default async function DashboardLayout({
 
           <div className="flex items-center gap-4">
             <p className="hidden text-sm text-[#94A3B8] sm:block">
-              {session.user.email}
+              {session?.user?.email ?? ""}
             </p>
 
             <LogoutButton />
