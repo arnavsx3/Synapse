@@ -52,6 +52,7 @@ export async function POST(
   req: NextRequest,
   context: { params: Promise<{ chatId: string }> },
 ) {
+  let chatId: string | null = null;
   try {
     const session = await auth();
 
@@ -77,10 +78,10 @@ export async function POST(
     }
 
     const chat = await getChatByUser(paramsResult.data.chatId, session.user.id);
-
     if (!chat) {
       return NextResponse.json({ message: "Chat not found" }, { status: 404 });
     }
+    chatId = chat.id;
 
     if (!process.env.GROQ_API_KEY) {
       return NextResponse.json(
@@ -164,6 +165,14 @@ export async function POST(
     });
   } catch (error) {
     console.error("Send chat message error:", error);
+
+    if (chatId) {
+      await addChatMessage({
+        chatId,
+        role: "assistant",
+        content: "I couldn’t generate a response right now. Please try again.",
+      });
+    }
 
     return NextResponse.json(
       { message: "Internal Server Error" },
