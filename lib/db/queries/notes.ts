@@ -1,9 +1,28 @@
+import {
+  and,
+  desc,
+  eq,
+  ilike,
+  InferInsertModel,
+  isNull,
+  or,
+} from "drizzle-orm";
 import { db } from "../client";
-import { and, InferInsertModel, isNull, eq } from "drizzle-orm";
 import { notes } from "../schema";
 
 type CreateNote = InferInsertModel<typeof notes>;
 type UpdateNote = Partial<Pick<CreateNote, "title" | "content" | "projectId">>;
+
+const buildQueryTerms = (query: string) => {
+  return Array.from(
+    new Set(
+      query
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((term) => term.length >= 3),
+    ),
+  ).slice(0, 8);
+};
 
 export const createNote = async (data: CreateNote) => {
   const [note] = await db.insert(notes).values(data).returning();
@@ -29,6 +48,46 @@ export const getNotesByUser = async (
   }
 
   return await db.select().from(notes).where(eq(notes.userId, userId));
+};
+
+export const getRelevantNotesByUser = async (
+  userId: string,
+  query: string,
+  limit = 5,
+) => {
+  const terms = buildQueryTerms(query);
+
+  if (terms.length === 0) {
+    return await db
+      .select()
+      .from(notes)
+      .where(eq(notes.userId, userId))
+      .orderBy(desc(notes.updatedAt), desc(notes.createdAt))
+      .limit(limit);
+  }
+
+  const conditions = terms.flatMap((term) => [
+    ilike(notes.title, `%${term}%`),
+    ilike(notes.content, `%${term}%`),
+  ]);
+
+  const matchedNotes = await db
+    .select()
+    .from(notes)
+    .where(and(eq(notes.userId, userId), or(...conditions)))
+    .orderBy(desc(notes.updatedAt), desc(notes.createdAt))
+    .limit(limit);
+
+  if (matchedNotes.length > 0) {
+    return matchedNotes;
+  }
+
+  return await db
+    .select()
+    .from(notes)
+    .where(eq(notes.userId, userId))
+    .orderBy(desc(notes.updatedAt), desc(notes.createdAt))
+    .limit(limit);
 };
 
 export const updateNote = async (
