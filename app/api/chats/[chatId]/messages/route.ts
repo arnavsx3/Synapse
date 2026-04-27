@@ -136,30 +136,40 @@ export async function POST(
 
     const noteContext = formatRelevantNotes(relevantNotes);
 
-    const groqResponse = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.7,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are Synapse, a helpful AI assistant inside a knowledge workspace. Keep responses clear, useful, and concise.",
-          },
-          ...history.map((message) => ({
-            role: message.role,
-            content: message.content,
-          })),
-        ],
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        },
-      },
-    );
+     const groqResponse = await axios.post(
+       "https://api.groq.com/openai/v1/chat/completions",
+       {
+         model: "llama-3.3-70b-versatile",
+         temperature: 0.7,
+         messages: [
+           {
+             role: "system",
+             content:
+               "You are Synapse, a helpful AI assistant inside a knowledge workspace. Keep responses clear, useful, and concise.",
+           },
+           {
+             role: "system",
+             content: [
+               "The following user notes are the primary context for this reply.",
+               "Use them when relevant.",
+               "If the answer is not supported by the notes, say that clearly instead of pretending the notes contain it.",
+               "",
+               noteContext,
+             ].join("\n"),
+           },
+           ...history.map((message) => ({
+             role: message.role,
+             content: message.content,
+           })),
+         ],
+       },
+       {
+         headers: {
+           "Content-Type": "application/json",
+           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+         },
+       },
+     );
 
     const groqData = await groqResponse.data;
     if (!groqData) {
