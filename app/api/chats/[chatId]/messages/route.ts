@@ -7,11 +7,35 @@ import {
   touchChat,
   updateChatTitle,
 } from "@/lib/db/queries/chats";
+import { getRelevantNotesByUser } from "@/lib/db/queries/notes";
 import {
   chatParamsSchema,
   sendChatMessageSchema,
 } from "@/lib/validators/chats";
 import axios from "axios";
+
+const formatRelevantNotes = (
+  relevantNotes: Awaited<ReturnType<typeof getRelevantNotesByUser>>,
+) => {
+  if (relevantNotes.length === 0) {
+    return "No relevant user notes were found.";
+  }
+
+  return relevantNotes
+    .map((note, index) => {
+      const normalizedContent = (note.content ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 600);
+
+      return [
+        `Note ${index + 1}`,
+        `Title: ${note.title}`,
+        `Content: ${normalizedContent || "Empty note"}`,
+      ].join("\n");
+    })
+    .join("\n\n");
+};
 
 export async function GET(
   _req: NextRequest,
@@ -103,6 +127,14 @@ export async function POST(
     if (!history) {
       return NextResponse.json({ message: "Chat not found" }, { status: 404 });
     }
+
+    const relevantNotes = await getRelevantNotesByUser(
+      session.user.id,
+      userMessageText,
+      5,
+    );
+
+    const noteContext = formatRelevantNotes(relevantNotes);
 
     const groqResponse = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
