@@ -21,7 +21,7 @@ const buildQueryTerms = (query: string) => {
         .split(/[^a-z0-9]+/)
         .filter((term) => term.length >= 3),
     ),
-  ).slice(0, 60);
+  ).slice(0, 20);
 };
 
 export const createNote = async (data: CreateNote) => {
