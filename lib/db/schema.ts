@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import { vector } from "drizzle-orm/pg-core";
 import {
   pgTable,
