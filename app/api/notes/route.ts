@@ -15,6 +15,7 @@ import {
 
 import { z } from "zod";
 import { getProjectByUser } from "@/lib/db/queries/projects";
+import { syncNoteEmbeddingByNoteId } from "@/lib/ai/note-embeddings";
 
 const noteProjectFilterSchema = z
   .union([z.literal("inbox"), z.uuid()])
@@ -55,6 +56,12 @@ export async function POST(req: NextRequest) {
       ...result.data,
       userId: session.user.id,
     });
+
+    try {
+      await syncNoteEmbeddingByNoteId(note.id, session.user.id);
+    } catch (embeddingError) {
+      console.error("Create note embedding sync error:", embeddingError);
+    }
 
     return NextResponse.json({ note });
   } catch (error) {
@@ -129,6 +136,13 @@ export async function PATCH(req: NextRequest) {
     if (!updated) {
       return NextResponse.json({ message: "Note not found" }, { status: 404 });
     }
+
+    try {
+      await syncNoteEmbeddingByNoteId(updated.id, session.user.id);
+    } catch (embeddingError) {
+      console.error("Update note embedding sync error:", embeddingError);
+    }
+
     return NextResponse.json({ note: updated });
   } catch (error) {
     console.error("Update note error:", error);
