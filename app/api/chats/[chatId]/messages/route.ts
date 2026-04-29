@@ -224,7 +224,7 @@ export async function POST(
       await addChatMessage({
         chatId,
         role: "assistant",
-        content: "I couldn’t generate a response right now. Please try again.",
+        content: "I couldn't generate a response right now. Please try again.",
       });
     }
 
