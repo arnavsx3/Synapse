@@ -9,8 +9,13 @@ export async function enqueueNoteEmbeddingJob(
   data: EnqueueNoteEmbeddingJobInput,
 ) {
   await noteEmbeddingQueue.add("embed-note", data, {
+    jobId: `note:${data.noteId}`,
     attempts: 3,
-    removeOnComplete: true,
-    removeOnFail: false,
+    backoff: {
+      type: "exponential",
+      delay: 1000,
+    },
+    removeOnComplete: 100,
+    removeOnFail: 100,
   });
 }

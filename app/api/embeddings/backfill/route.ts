@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getNotesByUser } from "@/lib/db/queries/notes";
-import { syncNoteEmbeddingByNoteId } from "@/lib/ai/note-embeddings";
+import { enqueueNoteEmbeddingJob } from "@/lib/queue/note-embedding";
 
 export async function POST() {
   try {
@@ -12,27 +12,30 @@ export async function POST() {
 
     const notes = await getNotesByUser(session.user.id);
 
-    let successCount = 0;
+    let queuedCount = 0;
     let failedCount = 0;
 
     for (const note of notes) {
       try {
-        await syncNoteEmbeddingByNoteId(note.id, session.user.id);
-        successCount += 1;
+        await enqueueNoteEmbeddingJob({
+          noteId: note.id,
+          userId: session.user.id,
+        });
+        queuedCount += 1;
       } catch (error) {
         failedCount += 1;
-        console.error(`Backfill failed for note ${note.id}:`, error);
+        console.error(`Backfill queue failed for note ${note.id}:`, error);
       }
     }
 
     return NextResponse.json({
-      message: "Backfill completed",
+      message: "Backfill jobs queued",
       total: notes.length,
-      successCount,
+      queuedCount,
       failedCount,
     });
   } catch (error) {
-    console.error("Embedding backfill error:", error);
+    console.error("Embedding backfill queue error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },
