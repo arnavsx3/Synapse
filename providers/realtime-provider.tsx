@@ -22,8 +22,8 @@ const RealtimeContext = createContext<RealtimeContextValue>({
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [socket] = useState(() => getRealtimeSocket());
-  const [status, setStatus] = useState<RealtimeStatus>(
-    socket.connected ? "connected" : "disconnected",
+  const [status, setStatus] = useState<RealtimeStatus>(() =>
+    socket.connected ? "connected" : "connecting",
   );
 
   useEffect(() => {
@@ -48,8 +48,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     socket.on("connect_error", handleConnectError);
     socket.io.on("reconnect_attempt", handleReconnectAttempt);
 
-    setStatus(socket.connected ? "connected" : "connecting");
-    socket.connect();
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     return () => {
       socket.off("connect", handleConnect);

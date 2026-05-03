@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDashboardRealtime } from "@/lib/realtime/use-dashboard-realtime";
 import {
   createProject,
@@ -58,10 +58,6 @@ function NoteEditor({
   const [noteTitle, setNoteTitle] = useState(note.title ?? "");
   const [noteContent, setNoteContent] = useState(note.content ?? "");
 
-  useEffect(() => {
-    setNoteTitle(note.title ?? "");
-    setNoteContent(note.content ?? "");
-  }, [note.content, note.id, note.title, note.updatedAt]);
   return (
     <div className="flex min-h-[60vh] flex-col gap-4">
       <input
@@ -587,7 +583,7 @@ export function Workspace() {
 
         {selectedNote ? (
           <NoteEditor
-            key={selectedNote.id}
+            key={`${selectedNote.id}:${selectedNote.updatedAt ?? "initial"}`}
             note={selectedNote}
             projects={projects}
             saving={saving}

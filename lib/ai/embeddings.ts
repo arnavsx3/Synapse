@@ -1,4 +1,5 @@
 import axios from "axios";
+import { AxiosError } from "axios";
 
 const EMBEDDING_DIMENSIONS = Number(process.env.EMBEDDING_DIMENSIONS ?? 384);
 
@@ -41,11 +42,22 @@ export async function embedText(text: string) {
     }
 
     return embedding as number[];
-  } catch (error: any) {
-    const errorText =
-      typeof error?.response?.data === "string"
-        ? error.response.data
-        : JSON.stringify(error?.response?.data ?? error.message);
+  } catch (err: unknown) {
+    let errorText = "Unknown error";
+
+    if (axios.isAxiosError(err)) {
+      const axiosErr = err as AxiosError;
+
+      if (typeof axiosErr.response?.data === "string") {
+        errorText = axiosErr.response.data;
+      } else if (axiosErr.response?.data) {
+        errorText = JSON.stringify(axiosErr.response.data);
+      } else if (axiosErr.message) {
+        errorText = axiosErr.message;
+      }
+    } else if (err instanceof Error) {
+      errorText = err.message;
+    }
 
     throw new Error(`Embedding request failed: ${errorText}`);
   }
