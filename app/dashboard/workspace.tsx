@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDashboardRealtime } from "@/lib/realtime/use-dashboard-realtime";
 import {
   createProject,
   getProjects,
@@ -57,6 +58,10 @@ function NoteEditor({
   const [noteTitle, setNoteTitle] = useState(note.title ?? "");
   const [noteContent, setNoteContent] = useState(note.content ?? "");
 
+  useEffect(() => {
+    setNoteTitle(note.title ?? "");
+    setNoteContent(note.content ?? "");
+  }, [note.content, note.id, note.title, note.updatedAt]);
   return (
     <div className="flex min-h-[60vh] flex-col gap-4">
       <input
@@ -128,6 +133,13 @@ export function Workspace() {
   } = useWorkspaceStore();
 
   const queryClient = useQueryClient();
+
+  useDashboardRealtime({
+    scope,
+    selectedNoteId,
+    setScope,
+    setSelectedNoteId,
+  });
 
   const createProjectMutation = useMutation({
     mutationFn: createProject,
@@ -360,7 +372,6 @@ export function Workspace() {
       content,
     });
   };
-
 
   const handleMoveNote = async (projectId: string | null) => {
     if (!selectedNote) {

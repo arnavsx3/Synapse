@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAssistantRealtime } from "@/lib/realtime/use-assistant-realtime";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createChat,
@@ -36,6 +37,12 @@ export function AssistantWorkspace() {
   });
 
   const activeChatId = selectedChatId ?? chats[0]?.id ?? null;
+
+  useAssistantRealtime({
+    activeChatId,
+    selectedChatId,
+    setSelectedChatId,
+  });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<
     ChatMessage[]
