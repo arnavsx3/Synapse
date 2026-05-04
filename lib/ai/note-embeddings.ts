@@ -15,6 +15,7 @@ export async function syncNoteEmbeddingByNoteId(
       title: notes.title,
       content: notes.content,
       userId: notes.userId,
+      workspaceId: notes.workspaceId,
       projectName: projects.name,
     })
     .from(notes)
@@ -36,6 +37,7 @@ export async function syncNoteEmbeddingByNoteId(
   await upsertNoteEmbedding({
     noteId: note.id,
     userId: note.userId,
+    workspaceId: note.workspaceId,
     embedding,
     sourceText,
   });
